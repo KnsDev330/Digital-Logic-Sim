@@ -337,6 +337,41 @@ namespace DLS.Simulation
 					chip.OutputPins[7].State = (in8 >> 0) & PinState.SingleBitMask;
 					break;
 				}
+				case ChipType.Merge_1To16Bit:
+				{
+					uint state = 0;
+					for (int i = 0; i < 16; i++)
+					{
+						state |= (chip.InputPins[15 - i].State & PinState.SingleBitMask) << i;
+					}
+
+					chip.OutputPins[0].State = state;
+					break;
+				}
+				case ChipType.Merge_8To16Bit:
+				{
+					SimPin in8High = chip.InputPins[0];
+					SimPin in8Low = chip.InputPins[1];
+					PinState.Set16BitFrom8BitSources(ref chip.OutputPins[0].State, in8Low.State, in8High.State);
+					break;
+				}
+				case ChipType.Split_16To8Bit:
+				{
+					uint in16 = chip.InputPins[0].State;
+					PinState.Set8BitFrom16BitSource(ref chip.OutputPins[0].State, in16, true);
+					PinState.Set8BitFrom16BitSource(ref chip.OutputPins[1].State, in16, false);
+					break;
+				}
+				case ChipType.Split_16To1Bit:
+				{
+					uint in16 = chip.InputPins[0].State;
+					for (int i = 0; i < 16; i++)
+					{
+						chip.OutputPins[i].State = (in16 >> (15 - i)) & PinState.SingleBitMask;
+					}
+
+					break;
+				}
 				case ChipType.TriStateBuffer:
 				{
 					SimPin dataPin = chip.InputPins[0];
@@ -490,6 +525,16 @@ namespace DLS.Simulation
 
 					break;
 				}
+				case ChipType.Ram_256x8:
+				{
+					ProcessSynchronousRam(chip, 0xFF, 0xFF);
+					break;
+				}
+				case ChipType.Ram_64Kx16:
+				{
+					ProcessSynchronousRam(chip, 0xFFFF, 0xFFFF);
+					break;
+				}
 				case ChipType.Rom_256x16:
 				{
 					const int ByteMask = 0b11111111;
@@ -518,6 +563,33 @@ namespace DLS.Simulation
 					break;
 				}
 			}
+		}
+
+		static void ProcessSynchronousRam(SimChip chip, uint addressMask, uint dataMask)
+		{
+			uint address = (uint)PinState.GetBitStates(chip.InputPins[0].State) & addressMask;
+			uint dataPin = chip.InputPins[1].State;
+			uint writeEnablePin = chip.InputPins[2].State;
+			uint resetPin = chip.InputPins[3].State;
+			uint clockPin = chip.InputPins[4].State;
+
+			bool clockHigh = PinState.FirstBitHigh(clockPin);
+			bool isRisingEdge = clockHigh && chip.InternalState[^1] == 0;
+			chip.InternalState[^1] = clockHigh ? 1u : 0;
+
+			if (isRisingEdge)
+			{
+				if (PinState.FirstBitHigh(resetPin))
+				{
+					Array.Clear(chip.InternalState, 0, chip.InternalState.Length - 1);
+				}
+				else if (PinState.FirstBitHigh(writeEnablePin))
+				{
+					chip.InternalState[address] = (uint)PinState.GetBitStates(dataPin) & dataMask;
+				}
+			}
+
+			chip.OutputPins[0].State = (ushort)(chip.InternalState[address] & dataMask);
 		}
 
 		public static SimChip BuildSimChip(ChipDescription chipDesc, ChipLibrary library)

@@ -47,7 +47,19 @@ namespace DLS.Description
 		BusTerminus_8Bit,
 		
 		// ---- Audio ----
-		Buzzer
+		Buzzer,
+
+		// ---- 16-bit (appended to preserve saved ChipType integer values) ----
+		In_16Bit,
+		Out_16Bit,
+		Merge_1To16Bit,
+		Merge_8To16Bit,
+		Split_16To8Bit,
+		Split_16To1Bit,
+		Ram_256x8,
+		Ram_64Kx16,
+		Bus_16Bit,
+		BusTerminus_16Bit
 
 	}
 }

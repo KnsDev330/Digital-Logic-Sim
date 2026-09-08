@@ -177,6 +177,7 @@ namespace Seb.Helpers
 			leftMouseDownConsumeFrame = -1;
 			rightMouseDownConsumeFrame = -1;
 			middleMouseDownConsumeFrame = -1;
+			UnityInputSource.ResetTextBuffer();
 			InputSource = new UnityInputSource();
 		}
 	}

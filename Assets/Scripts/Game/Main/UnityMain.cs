@@ -1,6 +1,7 @@
 using DLS.Graphics;
 using DLS.Simulation;
 using Seb.Helpers;
+using Seb.Helpers.InputHandling;
 using Seb.Vis;
 using Seb.Vis.UI;
 using UnityEngine;
@@ -85,6 +86,11 @@ namespace DLS.Game
 
 			if (songTestMode) SongTest();
 			else Main.Update();
+		}
+
+		void OnGUI()
+		{
+			UnityInputSource.ProcessGuiEvent(Event.current);
 		}
 
 		void SongTest()

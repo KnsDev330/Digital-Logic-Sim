@@ -53,6 +53,8 @@ namespace DLS.SaveSystem
 				collection.UpdateDisplayStrings();
 			}
 
+			BuiltinCollectionCreator.AddMissingBuiltinChipsToCollections(desc.ChipCollections);
+
 			return desc;
 		}
 

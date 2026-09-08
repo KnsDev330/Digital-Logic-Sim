@@ -56,6 +56,28 @@ namespace DLS.Simulation
 			Set(ref state, bitStates, tristateFlags);
 		}
 
+		public static void Set8BitFrom16BitSource(ref uint state, uint source16bit, bool highByte)
+		{
+			ushort sourceBitStates = GetBitStates(source16bit);
+			ushort sourceTristateFlags = GetTristateFlags(source16bit);
+
+			if (highByte)
+			{
+				Set(ref state, (ushort)((sourceBitStates >> 8) & 0xFF), (ushort)((sourceTristateFlags >> 8) & 0xFF));
+			}
+			else
+			{
+				Set(ref state, (ushort)(sourceBitStates & 0xFF), (ushort)(sourceTristateFlags & 0xFF));
+			}
+		}
+
+		public static void Set16BitFrom8BitSources(ref uint state, uint low, uint high)
+		{
+			ushort bitStates = (ushort)((GetBitStates(low) & 0xFF) | ((GetBitStates(high) & 0xFF) << 8));
+			ushort tristateFlags = (ushort)((GetTristateFlags(low) & 0xFF) | ((GetTristateFlags(high) & 0xFF) << 8));
+			Set(ref state, bitStates, tristateFlags);
+		}
+
 
 		public static void Toggle(ref uint state, int bitIndex)
 		{
